@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campus Gestió Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginPage">
+  <div class="login-wrap">
+    <div class="login-brand">
+      <div>
+        <div class="login-brand-title">Campus<br><span>Gestió</span><br>Pro</div>
+        <p class="login-brand-sub">Sistema de gestió acadèmica professional per a centres educatius.</p>
+      </div>
+      <div class="login-brand-info">
+        <p class="login-brand-meta">Sistema de gestió &bull; v2.0</p>
+      </div>
+    </div>
+    <div class="login-box">
+      <div class="login-box-title">Inici de Sessió</div>
+      <p class="login-box-sub">Introduïu les vostres credencials per accedir</p>
+      <div class="form-field">
+        <label>Correu Electrònic</label>
+        <input id="loginEmail" type="email" placeholder="correu@exemple.com" autocomplete="email">
+      </div>
+      <div class="form-field">
+        <label>Contrasenya</label>
+        <input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <button class="btn-login" id="loginBtn">Accedir al Sistema</button>
+      <p id="loginError" class="error-msg">Credencials incorrectes. Torneu-ho a intentar.</p>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div id="app" class="hidden">
+  <aside>
+    <div class="sidebar-header">
+      <div class="sidebar-logo">Campus <span>Gestió</span> Pro</div>
+      <div id="roleBadge" class="role-badge"></div>
+    </div>
+    <div class="sidebar-user">
+      <strong id="sidebarUserName"></strong>
+      <span id="sidebarUserEmail"></span>
+    </div>
+    <nav id="mainNav"></nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" id="logoutBtn">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" width="14" height="14"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/></svg>
+        Tancar Sessió
+      </button>
+    </div>
+  </aside>
+
+  <main>
+
+    <!-- ADMIN: DASHBOARD -->
+    <div id="section-dashboard" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div>
+            <h2>Tauler de Control</h2>
+            <p>Visió general del sistema acadèmic</p>
+          </div>
+          <div id="dashDate" style="font-size:12px;color:var(--text3);font-family:'DM Mono',monospace;"></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="dashboard-grid" id="dashStats"></div>
+        <div class="dashboard-row" id="dashLists"></div>
+      </div>
+    </div>
+
+    <!-- ADMIN: USUARIS -->
+    <div id="section-adminUsers" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div><h2>Gestió d'Usuaris</h2><p>Alta, edició i eliminació de professors i alumnes</p></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="tabs">
+          <button class="tab active" onclick="switchUserTab('professors')">Professors</button>
+          <button class="tab" onclick="switchUserTab('alumnes')">Alumnes</button>
+        </div>
+
+        <!-- PROFESSORS TAB -->
+        <div id="tabProfessors">
+          <div class="card mb-6">
+            <div class="card-header"><h3>Registrar Nou Professor</h3></div>
+            <div class="card-body">
+              <div class="form-grid form-grid-3">
+                <div class="form-field p-0"><label>Nom</label><input id="tNom" placeholder="Nom"></div>
+                <div class="form-field p-0"><label>Cognoms</label><input id="tCognoms" placeholder="Cognoms"></div>
+                <div class="form-field p-0"><label>Telèfon</label><input id="tTel" placeholder="Telèfon"></div>
+                <div class="form-field p-0"><label>Correu Electrònic</label><input id="tEmail" type="email" placeholder="professor@exemple.com"></div>
+                <div class="form-field p-0"><label>Contrasenya</label><input id="tPass" type="password" placeholder="••••••••"></div>
+                <div class="form-field p-0"><label>Especialitat</label><input id="tEspec" placeholder="Ex: Matemàtiques, IA..."></div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" onclick="saveTeacher()">Registrar Professor</button>
+              </div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nom Complet</th><th>Correu</th><th>Telèfon</th><th>Especialitat</th><th>Grups</th><th>Accions</th></tr></thead>
+              <tbody id="teacherTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- ALUMNES TAB -->
+        <div id="tabAlumnes" class="hidden">
+          <div class="card mb-6">
+            <div class="card-header"><h3>Registrar Nou Alumne</h3></div>
+            <div class="card-body">
+              <div class="section-divider">Dades Personals</div>
+              <div class="form-grid form-grid-3">
+                <div class="form-field p-0"><label>Nom</label><input id="aNom" placeholder="Nom"></div>
+                <div class="form-field p-0"><label>Cognoms</label><input id="aCognoms" placeholder="Cognoms"></div>
+                <div class="form-field p-0"><label>Data Naixement</label><input id="aBirth" type="date"></div>
+                <div class="form-field p-0"><label>Correu Electrònic</label><input id="aEmail" type="email" placeholder="alumne@exemple.com"></div>
+                <div class="form-field p-0"><label>Contrasenya</label><input id="aPass" type="password" placeholder="••••••••"></div>
+                <div class="form-field p-0"><label>Telèfon Alumne</label><input id="aTel" placeholder="Telèfon alumne"></div>
+              </div>
+              <div class="section-divider" style="margin-top:16px;">Dades Familiars</div>
+              <div class="form-grid form-grid-3">
+                <div class="form-field p-0"><label>Nom Pare/Mare/Tutor</label><input id="aParentNom" placeholder="Nom tutor"></div>
+                <div class="form-field p-0"><label>Email Pare/Mare</label><input id="aParentEmail" type="email" placeholder="pare@exemple.com"></div>
+                <div class="form-field p-0"><label>Tel. Pare/Mare</label><input id="aParentTel" placeholder="Telèfon tutor"></div>
+              </div>
+              <div class="section-divider" style="margin-top:16px;">Matrícula i Assignació</div>
+              <div class="form-grid form-grid-3">
+                <div class="form-field p-0"><label>Matrícula (€)</label><input id="aMatricula" type="number" placeholder="0" min="0"></div>
+                <div class="form-field p-0"><label>Cursos (múltiple)</label><select id="aCursos" multiple style="height:80px;" class="w-full"></select></div>
+                <div class="form-field p-0"><label>Grups (múltiple)</label><select id="aGrups" multiple style="height:80px;" class="w-full"></select></div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" onclick="saveStudent()">Registrar Alumne</button>
+              </div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nom</th><th>Correu</th><th>Edat</th><th>Cursos</th><th>Grups</th><th>Matrícula</th><th>Accions</th></tr></thead>
+              <tbody id="studentTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN: ACADÈMIA (CURSOS + GRUPS) -->
+    <div id="section-adminAcademy" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div><h2>Acadèmia</h2><p>Gestió de cursos i grups d'alumnes</p></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="tabs">
+          <button class="tab active" onclick="switchAcademyTab('cursos')">Cursos</button>
+          <button class="tab" onclick="switchAcademyTab('grups')">Grups</button>
+        </div>
+
+        <div id="tabCursos">
+          <div class="card mb-6">
+            <div class="card-header"><h3>Nou Curs</h3></div>
+            <div class="card-body">
+              <div class="form-grid form-grid-4">
+                <div class="form-field p-0"><label>Nom del Curs</label><input id="cNom" placeholder="Ex: Curs d'IA"></div>
+                <div class="form-field p-0"><label>Preu (€)</label><input id="cPreu" type="number" placeholder="0" min="0"></div>
+                <div class="form-field p-0"><label>Horari</label><input id="cHorari" placeholder="Dill/Dim 10:00–12:00"></div>
+                <div class="form-field p-0"><label>Màx. Alumnes</label><input id="cMax" type="number" placeholder="20" min="1"></div>
+              </div>
+              <div class="form-field" style="margin-top:12px;"><label>Descripció</label><textarea id="cDesc" rows="2" style="width:100%;resize:vertical;" placeholder="Descripció breu del curs..."></textarea></div>
+              <div class="form-actions">
+                <button class="btn btn-primary" onclick="saveCourse()">Crear Curs</button>
+              </div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nom del Curs</th><th>Preu</th><th>Horari</th><th>Màx. Alumnes</th><th>Inscrits</th><th>Accions</th></tr></thead>
+              <tbody id="courseTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="tabGrups" class="hidden">
+          <div class="card mb-6">
+            <div class="card-header"><h3>Nou Grup</h3></div>
+            <div class="card-body">
+              <div class="form-grid form-grid-3">
+                <div class="form-field p-0"><label>Nom del Grup</label><input id="gNom" placeholder="Ex: 1A, Grup Matí"></div>
+                <div class="form-field p-0"><label>Curs Assignat</label><select id="gCourse" class="w-full"><option value="">-- Selecciona un curs --</option></select></div>
+                <div class="form-field p-0"><label>Professors (múltiple)</label><select id="gTeachers" multiple style="height:80px;" class="w-full"></select></div>
+              </div>
+              <div class="form-actions">
+                <button class="btn btn-primary" onclick="saveGroup()">Crear Grup</button>
+              </div>
+            </div>
+          </div>
+          <div class="tbl-wrap">
+            <table class="tbl">
+              <thead><tr><th>Nom del Grup</th><th>Curs</th><th>Professors</th><th>Alumnes</th><th>Accions</th></tr></thead>
+              <tbody id="groupTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ADMIN: FINANCES -->
+    <div id="section-adminFinance" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div><h2>Finances</h2><p>Control econòmic i registre de matrícules</p></div>
+          <div class="flex gap-2">
+            <button class="btn btn-secondary btn-sm" onclick="exportFinanceCSV()">Exportar CSV</button>
+          </div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div class="dashboard-grid mb-6" id="financeStats"></div>
+        <div class="card mb-4">
+          <div class="card-header"><h3>Afegir Entrada Manual</h3></div>
+          <div class="card-body">
+            <div class="form-grid form-grid-4">
+              <div class="form-field p-0"><label>Concepte (Alumne)</label><input id="fConcepte" placeholder="Nom de l'alumne"></div>
+              <div class="form-field p-0"><label>Tipus / Curs</label><input id="fTipus" placeholder="Nom del curs"></div>
+              <div class="form-field p-0"><label>Import (€)</label><input id="fImport" type="number" placeholder="0" min="0"></div>
+              <div class="form-field p-0"><label>Estat Matrícula</label>
+                <select id="fMatricula" class="w-full">
+                  <option value="Matriculat">Matriculat</option>
+                  <option value="Pendent">Pendent de Pagament</option>
+                  <option value="Pagat">Pagat</option>
+                  <option value="Baixa">Baixa</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" onclick="addFinanceRow()">Afegir Entrada</button>
+            </div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>Alumne</th><th>Curs</th><th>Import</th><th>Data Inici</th>
+                <th>Matrícula</th><th>Preu Final</th><th>Acció</th>
+              </tr>
+            </thead>
+            <tbody id="financeTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- HORARI (CALENDARI) -->
+    <div id="section-scheduleView" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div><h2>Horari</h2><p>Calendari d'activitats, classes i tasques</p></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div id="calAdminControls" class="hidden card mb-4">
+          <div class="card-header"><h3>Afegir Esdeveniment al Calendari</h3></div>
+          <div class="card-body">
+            <div class="form-grid form-grid-4">
+              <div class="form-field p-0"><label>Títol</label><input id="evTitle" placeholder="Nom de l'esdeveniment"></div>
+              <div class="form-field p-0"><label>Inici</label><input id="evStart" type="datetime-local"></div>
+              <div class="form-field p-0"><label>Final</label><input id="evEnd" type="datetime-local"></div>
+              <div class="form-field p-0"><label>Tipus</label>
+                <select id="evColor" class="w-full">
+                  <option value="#1b3055">Classe</option>
+                  <option value="#1a6e42">Tasca</option>
+                  <option value="#b52d22">Important</option>
+                  <option value="#7a5800">Recordatori</option>
+                  <option value="#6a0a7a">Examen</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-field" style="margin-top:12px;"><label>Descripció (opcional)</label><input id="evDesc" placeholder="Detalls adicionals..."></div>
+            <div class="form-actions">
+              <button class="btn btn-primary" onclick="addCalendarEvent()">Afegir al Calendari</button>
+            </div>
+          </div>
+        </div>
+        <div id="teacherCalControls" class="hidden card mb-4">
+          <div class="card-header"><h3>Publicar Tasca per al Grup</h3></div>
+          <div class="card-body">
+            <div class="form-grid form-grid-4">
+              <div class="form-field p-0"><label>Títol Tasca</label><input id="tEvTitle" placeholder="Nom de la tasca"></div>
+              <div class="form-field p-0"><label>Grup</label><select id="tEvGroup" class="w-full"></select></div>
+              <div class="form-field p-0"><label>Data Lliurament</label><input id="tEvStart" type="datetime-local"></div>
+              <div class="form-field p-0"><label>Final (opcional)</label><input id="tEvEnd" type="datetime-local"></div>
+            </div>
+            <div class="form-field" style="margin-top:12px;"><label>Descripció</label><input id="tEvDesc" placeholder="Descripció de la tasca..."></div>
+            <div class="form-actions">
+              <button class="btn btn-primary" onclick="addTeacherTask()">Publicar Tasca</button>
+            </div>
+          </div>
+        </div>
+        <div class="card" style="padding:24px;"><div id="calendar"></div></div>
+      </div>
+    </div>
+
+    <!-- GRUPS (CLASSROOM) - PROFESSOR -->
+    <div id="section-classroomView" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div><h2>Els Meus Grups</h2><p>Espai de treball per grup — vista del professor</p></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div id="classroomSelectionGrid"></div>
+        <div id="classroomDetail" class="hidden">
+          <button class="btn btn-secondary mb-4" onclick="backToGroups()">← Tornar als grups</button>
+          <div id="groupDetailContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALUMNE: ELS MEUS GRUPS -->
+    <div id="section-studentHome" class="hidden">
+      <div class="page-header">
+        <div class="page-header-inner">
+          <div><h2>El Meu Espai</h2><p>Grups i tasques assignades</p></div>
+        </div>
+      </div>
+      <div class="page-body">
+        <div id="studentGroupsView" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;"></div>
+        <div id="studentGroupDetail" class="hidden">
+          <button class="btn btn-secondary mb-4" onclick="backToStudentGroups()">← Tornar als grups</button>
+          <div id="studentGroupContent"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ALUMNE: HORARI (ja és el scheduleView compartit) -->
+
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Modal detall alumne -->
+<div id="modalStudentDetail" class="modal-overlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Fitxa Completa de l'Alumne</h3>
+      <button class="modal-close" onclick="closeModal('modalStudentDetail')">×</button>
+    </div>
+    <div class="modal-body" id="modalStudentDetailBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalStudentDetail')">Tancar</button>
+      <button class="btn btn-primary" id="btnEditFromDetail" onclick="">Editar Alumne</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar usuari -->
+<div id="modalEditUser" class="modal-overlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3 id="modalEditUserTitle">Editar Usuari</h3>
+      <button class="modal-close" onclick="closeModal('modalEditUser')">×</button>
+    </div>
+    <div class="modal-body" id="modalEditUserBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalEditUser')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="saveEditUser()">Guardar Canvis</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar curs -->
+<div id="modalEditCourse" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>Editar Curs</h3>
+      <button class="modal-close" onclick="closeModal('modalEditCourse')">×</button>
+    </div>
+    <div class="modal-body" id="modalEditCourseBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalEditCourse')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="saveEditCourse()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar grup -->
+<div id="modalEditGroup" class="modal-overlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Editar Grup</h3>
+      <button class="modal-close" onclick="closeModal('modalEditGroup')">×</button>
+    </div>
+    <div class="modal-body" id="modalEditGroupBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalEditGroup')">Cancel·lar</button>
+      <button class="btn btn-primary" onclick="saveEditGroup()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal historial assistència -->
+<div id="modalAttendHistory" class="modal-overlay">
+  <div class="modal modal-wide">
+    <div class="modal-header">
+      <h3>Historial d'Assistència</h3>
+      <button class="modal-close" onclick="closeModal('modalAttendHistory')">×</button>
+    </div>
+    <div class="modal-body" id="modalAttendHistoryBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalAttendHistory')">Tancar</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal editar event calendari -->
+<div id="modalEditEvent" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalEditEventTitle">Detall de l'Esdeveniment</h3>
+      <button class="modal-close" onclick="closeModal('modalEditEvent')">×</button>
+    </div>
+    <div class="modal-body" id="modalEditEventBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalEditEvent')">Tancar</button>
+      <button class="btn btn-danger" id="btnDeleteEvent" onclick="">Eliminar</button>
+    </div>
+  </div>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>
