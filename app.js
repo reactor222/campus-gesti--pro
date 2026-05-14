@@ -1,6 +1,26 @@
-// ===== CONSTANTS & STATE =====
+// ===== SUPABASE CONFIG =====
+// IMPORTANT:
+// 1. Create a Supabase project
+// 2. Replace the values below
+// 3. Add this script in index.html BEFORE app.js:
+//
+// <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+//
+const SUPABASE_URL =
+'https://nidpucteliuhybjfzqwv.supabase.co';
+
+const SUPABASE_ANON_KEY =
+'sb_publishable_okrQaDIABMWFukv5L-S_Wg_gE7OlnLU';
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+
+// ===== CONSTANTS & STATE =====\n// LocalStorage is still used as temporary offline cache.
 const ADMIN_EMAIL = 'lukeferrer11@gmail.com';
-const ADMIN_PASS = 'lf3517lf';
+const ADMIN_PASS = 'CHANGE_THIS_PASSWORD';
 
 // Input sanitization
 function clean(s) {
@@ -56,7 +76,40 @@ function save() {
 document.getElementById('loginBtn').onclick = doLogin;
 document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
-function doLogin() {
+async function doLogin() {
+
+  const email =
+    document.getElementById('loginEmail').value;
+
+  const password =
+    document.getElementById('loginPassword').value;
+
+  const { data, error } =
+    await supabaseClient.auth.signInWithPassword({
+      email,
+      password
+    });
+
+  if (error) {
+    alert('Login incorrecte');
+    return;
+  }
+
+  currentUser = {
+    email: data.user.email,
+    role: 'admin'
+  };
+
+  document
+    .getElementById('loginPage')
+    .classList.add('hidden');
+
+  document
+    .getElementById('app')
+    .classList.remove('hidden');
+
+  navigate('dashboard');
+}
   const email = document.getElementById('loginEmail').value.trim().toLowerCase();
   const pass  = document.getElementById('loginPassword').value;
   const errEl = document.getElementById('loginError');
