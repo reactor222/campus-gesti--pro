@@ -1,11 +1,4 @@
-// ===== SUPABASE CONFIG =====
-// IMPORTANT:
-// 1. Create a Supabase project
-// 2. Replace the values below
-// 3. Add this script in index.html BEFORE app.js:
-//
-// <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-//
+// ===== CONSTANTS & STATE =====
 const SUPABASE_URL =
 'https://nidpucteliuhybjfzqwv.supabase.co';
 
@@ -16,11 +9,8 @@ const supabaseClient = supabase.createClient(
   SUPABASE_URL,
   SUPABASE_ANON_KEY
 );
-
-
-// ===== CONSTANTS & STATE =====\n// LocalStorage is still used as temporary offline cache.
 const ADMIN_EMAIL = 'lukeferrer11@gmail.com';
-const ADMIN_PASS = 'CHANGE_THIS_PASSWORD';
+const ADMIN_PASS = 'lf3517lf';
 
 // Input sanitization
 function clean(s) {
@@ -108,30 +98,10 @@ async function doLogin() {
     .getElementById('app')
     .classList.remove('hidden');
 
-  navigate('dashboard');
-}
-  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
-  const pass  = document.getElementById('loginPassword').value;
-  const errEl = document.getElementById('loginError');
-  errEl.classList.remove('show');
-
-  // Check admin
-  if (email === ADMIN_EMAIL.toLowerCase() && pass === ADMIN_PASS) {
-    const admin = state.users.find(u => u.role === 'admin') || { id:'admin', email:ADMIN_EMAIL, pass:ADMIN_PASS, role:'admin', nom:'Luka', cognoms:'Ferrer' };
-    startSession(admin);
-    return;
-  }
-
-  const u = state.users.find(x => x.email.toLowerCase() === email && x.pass === pass && x.role !== 'admin');
-  if (u) {
-    startSession(u);
-  } else {
-    errEl.classList.add('show');
-    document.getElementById('loginPassword').value = '';
-  }
+navigate('dashboard');
 }
 
-function startSession(u) {
+function startSession(u)
   currentUser = u;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
