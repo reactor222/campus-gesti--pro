@@ -87,21 +87,17 @@ async function doLogin() {
 
   currentUser = {
     email: data.user.email,
-    role: 'admin'
+    role: 'admin',
+    nom: data.user.email.split('@')[0],
+    cognoms: ''
   };
 
-  document
-    .getElementById('loginPage')
-    .classList.add('hidden');
+  startSession(currentUser);
 
-  document
-    .getElementById('app')
-    .classList.remove('hidden');
-
-navigate('dashboard');
+  
 }
 
-function startSession(u)
+function startSession(u) {
   currentUser = u;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
