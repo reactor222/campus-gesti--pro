@@ -66,15 +66,21 @@ function save() {
 document.getElementById('loginBtn').onclick = doLogin;
 document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
+
 async function doLogin() {
 
-  const email =
-    document.getElementById('loginEmail').value.trim().toLowerCase();
+  const email = document
+    .getElementById('loginEmail')
+    .value
+    .trim()
+    .toLowerCase();
 
-  const password =
-    document.getElementById('loginPassword').value.trim();
+  const password = document
+    .getElementById('loginPassword')
+    .value
+    .trim();
 
-  // Admin local fallback
+  // Admin local login
   if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
     startSession({
       email: ADMIN_EMAIL,
@@ -85,50 +91,64 @@ async function doLogin() {
     return;
   }
 
-  const { data, error } =
-    await supabaseClient.auth.signInWithPassword({
-      email,
-      password
-    });
+  // Local users fallback
+  const localUser = state.users.find(
+    u =>
+      u.email &&
+      u.email.toLowerCase() === email &&
+      u.pass === password
+  );
 
-  if (error || !data.user) {
-    document.getElementById('loginError').classList.add('show');
+  if (localUser) {
+    startSession(localUser);
     return;
   }
 
-  const localUser =
-    state.users.find(
+  // Supabase auth
+  try {
+
+    const { data, error } =
+      await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+      });
+
+    if (error || !data.user) {
+      document
+        .getElementById('loginError')
+        .classList.add('show');
+      return;
+    }
+
+    const dbUser = state.users.find(
       u => u.email.toLowerCase() === email
     );
 
-  startSession({
-    email: data.user.email,
-    role: localUser?.role || 'student',
-    nom: localUser?.nom || '',
-    cognoms: localUser?.cognoms || ''
-  });
+    startSession({
+      email: data.user.email,
+      role: dbUser?.role || 'student',
+      nom: dbUser?.nom || '',
+      cognoms: dbUser?.cognoms || ''
+    });
+
+  } catch(err) {
+    console.error(err);
+    document
+      .getElementById('loginError')
+      .classList.add('show');
+  }
 }
+
 
 function startSession(u) {
   currentUser = u;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-
-  document.getElementById('roleBadge').textContent =
-    u.role === 'admin'
-      ? 'Administrador'
-      : u.role === 'teacher'
-      ? 'Professor'
-      : 'Alumne';
-
-  document.getElementById('sidebarUserName').textContent =
-    `${u.nom || ''} ${u.cognoms || ''}`.trim();
-
-  document.getElementById('sidebarUserEmail').textContent =
-    u.email || '';
-
+  document.getElementById('roleBadge').textContent = u.role === 'admin' ? 'Administrador' : u.role === 'teacher' ? 'Professor' : 'Alumne';
+  document.getElementById('sidebarUserName').textContent = `${u.nom} ${u.cognoms || ''}`.trim();
+  document.getElementById('sidebarUserEmail').textContent = u.email;
   renderSidebar();
-
+  // Navigate to first menu item
   const first = (MENU[u.role] || [])[0];
   if (first) navigate(first.id);
 }
@@ -290,7 +310,7 @@ function populateStudentForm() {
   document.getElementById('aGrups').innerHTML = state.groups.map(g => `<option value="${g.nom}">${g.nom} (${g.course})</option>`).join('');
 }
 
-function saveTeacher() {
+async function saveTeacher() {
   const nom    = document.getElementById('tNom').value.trim();
   const cognoms= document.getElementById('tCognoms').value.trim();
   const email  = document.getElementById('tEmail').value.trim().toLowerCase();
@@ -299,7 +319,18 @@ function saveTeacher() {
   if (!email.includes('@')) return alert('El correu no és vàlid.');
   if (state.users.find(u => u.email.toLowerCase() === email)) return alert('Ja existeix un usuari amb aquest correu.');
   if (pass.length < 4) return alert('La contrasenya ha de tenir almenys 4 caràcters.');
-  state.users.push({
+  
+// Create teacher in Supabase
+try {
+  await supabaseClient.auth.signUp({
+    email,
+    password: pass
+  });
+} catch(e) {
+  console.error('Supabase teacher error', e);
+}
+
+state.users.push({
     id: uid(), nom: clean(nom), cognoms: clean(cognoms),
     email: clean(email), pass: clean(pass),
     tel: clean(document.getElementById('tTel').value),
@@ -310,7 +341,7 @@ function saveTeacher() {
   ['tNom','tCognoms','tEmail','tPass','tTel','tEspec'].forEach(id => document.getElementById(id).value = '');
 }
 
-function saveStudent() {
+async function saveStudent() {
   const nom     = document.getElementById('aNom').value.trim();
   const cognoms = document.getElementById('aCognoms').value.trim();
   const email   = document.getElementById('aEmail').value.trim().toLowerCase();
@@ -324,7 +355,18 @@ function saveStudent() {
   const grups  = Array.from(document.getElementById('aGrups').selectedOptions).map(o => o.value);
   const matricula = parseFloat(document.getElementById('aMatricula').value) || 0;
 
-  const u = {
+  
+// Create student in Supabase
+try {
+  await supabaseClient.auth.signUp({
+    email,
+    password: pass
+  });
+} catch(e) {
+  console.error('Supabase student error', e);
+}
+
+const u = {
     id: uid(), nom: clean(nom), cognoms: clean(cognoms),
     email: clean(email), pass: clean(pass),
     tel: clean(document.getElementById('aTel').value),
