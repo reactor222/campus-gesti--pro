@@ -69,10 +69,21 @@ document.getElementById('loginPassword').addEventListener('keydown', e => { if (
 async function doLogin() {
 
   const email =
-    document.getElementById('loginEmail').value;
+    document.getElementById('loginEmail').value.trim().toLowerCase();
 
   const password =
-    document.getElementById('loginPassword').value;
+    document.getElementById('loginPassword').value.trim();
+
+  // Admin local fallback
+  if (email === ADMIN_EMAIL && password === ADMIN_PASS) {
+    startSession({
+      email: ADMIN_EMAIL,
+      role: 'admin',
+      nom: 'Luka',
+      cognoms: 'Ferrer'
+    });
+    return;
+  }
 
   const { data, error } =
     await supabaseClient.auth.signInWithPassword({
@@ -80,32 +91,44 @@ async function doLogin() {
       password
     });
 
-  if (error) {
-    alert('Login incorrecte');
+  if (error || !data.user) {
+    document.getElementById('loginError').classList.add('show');
     return;
   }
 
-  currentUser = {
+  const localUser =
+    state.users.find(
+      u => u.email.toLowerCase() === email
+    );
+
+  startSession({
     email: data.user.email,
-    role: 'admin',
-    nom: data.user.email.split('@')[0],
-    cognoms: ''
-  };
-
-  startSession(currentUser);
-
-  
+    role: localUser?.role || 'student',
+    nom: localUser?.nom || '',
+    cognoms: localUser?.cognoms || ''
+  });
 }
 
 function startSession(u) {
   currentUser = u;
   document.getElementById('loginPage').classList.add('hidden');
   document.getElementById('app').classList.remove('hidden');
-  document.getElementById('roleBadge').textContent = u.role === 'admin' ? 'Administrador' : u.role === 'teacher' ? 'Professor' : 'Alumne';
-  document.getElementById('sidebarUserName').textContent = `${u.nom} ${u.cognoms || ''}`.trim();
-  document.getElementById('sidebarUserEmail').textContent = u.email;
+
+  document.getElementById('roleBadge').textContent =
+    u.role === 'admin'
+      ? 'Administrador'
+      : u.role === 'teacher'
+      ? 'Professor'
+      : 'Alumne';
+
+  document.getElementById('sidebarUserName').textContent =
+    `${u.nom || ''} ${u.cognoms || ''}`.trim();
+
+  document.getElementById('sidebarUserEmail').textContent =
+    u.email || '';
+
   renderSidebar();
-  // Navigate to first menu item
+
   const first = (MENU[u.role] || [])[0];
   if (first) navigate(first.id);
 }
